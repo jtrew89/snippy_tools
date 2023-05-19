@@ -62,28 +62,51 @@ snp_tab_dic = {'input_dir':f'{args.input_dir}','out_dir':f'{args.output_dir}'}
 snp_tab.main(snp_tab_dic)
 
 
-##run snippy on snippy multi output (which is just snippy on each individual isolate)
+##Run snippy-multi output (which is just snippy on each individual isolate)
 if args.snippy_dir:
 	os.chdir(args.snippy_dir)
 	with open(f'{args.output_dir}runme.sh', 'w') as run_file:
 		subprocess.run(
 			[
-		'snippy-multi', f'{args.output_dir}snippy_tab.txt', f'--ref {args.ref_dir}',
-		f' --cpus {args.cpus}'
-			], stdout=run_file
+			'./snippy-multi', f'{args.output_dir}snippy_tab.txt',
+			f'--ref {args.ref_dir}',
+			f' --cpus {args.cpus}'
+			],
+			stdout=run_file
 				)
 else:
 	with open(f'{args.output_dir}runme.sh', 'w') as run_file:
 		subprocess.run(
 			[
-		'snippy-multi', f'{args.output_dir}snippy_tab.txt', f'--ref {args.ref_dir}',
-		f' --cpus {args.cpus}'
-			], stdout=run_file
+			'snippy-multi', f'{args.output_dir}snippy_tab.txt',
+			f'--ref {args.ref_dir}',
+			f' --cpus {args.cpus}'
+			],
+			stdout=run_file
 				)
-##prepend #!/bin/sh to runme.sh
+####Alter runme.sh script
+##Prepend #!/bin/sh to
 os.chdir(args.output_dir)
 line_prepender('runme.sh', '#!/bin/sh')
+##Add './' to snippy comands runme.sh
+subprocess.run(
+	[
+	'sed', '-i', 's|snippy |./snippy |', 'runme.sh'
+	]
+		)
 
+subprocess.run(
+	[
+	'sed', '-i', 's|snippy-core|./snippy-core|', 'runme.sh'
+	]
+		 )
+##Add output directory to snippy output
+subprocess.run(
+	[
+	'sed', '-i', f's|outdir |outdir {args.output_dir}|', 'runme.sh'
+	]
+		)
+##Run runme.sh (which runs snippy on all isolates in directory and snippy-core)
 os.chdir(args.snippy_dir)
 subprocess.run(
 	f'{args.output_dir}runme.sh')

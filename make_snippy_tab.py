@@ -11,6 +11,7 @@ import pandas as pd
 import glob
 import argparse
 import sys
+import os
 from os import listdir
 from re import sub
 #from os.path import isfile, join
@@ -24,20 +25,26 @@ def main(args):
 
 	path_lst_R1 = []
 	path_lst_R2 = []
-	file_lst = [s for s in listdir(mypath) if s.endswith('.gz')]
+	#file_lst = [s for s in listdir(mypath) if s.endswith('.gz')]
 	isolate_name = []
+	file_lst_2 = []
 
 	##Add path for each file in a list
 	for file in glob.glob(mypath + '*R1*gz'):
-		path_lst_R1.append(file)
-	for file in glob.glob(mypath + '*R2*gz'):
-        	path_lst_R2.append(file)
+		r2_file = sub('_R1', '_R2', file)
+		if os.path.isfile(r2_file):
+			path_lst_R1.append(file)
+			path_lst_R2.append(r2_file)
+			file_lst_2.append(sub(mypath, '', file))
+		else:
+			pass
+
 	path_lst_R1 = sorted(set(path_lst_R1))
 	path_lst_R2 = sorted(set(path_lst_R2))
 
 	###Creat a dataframe and insert each isolate to first column
 	##creat isolate list, the isolate ID that will be on the first column of your dataframe
-	for name in file_lst:
+	for name in file_lst_2:
 		new_name = sub(r'_R.*', '', name)
 		isolate_name.append(new_name)
 	isolate_name = sorted(set(isolate_name))
